@@ -31,7 +31,7 @@ export const isFreshCtx = <TState>(
  */
 export default function Fresh(
   freshConfig: FreshConfig,
-  appContext: Pick<AppContext, "monitoring" | "response" | "caching">,
+  appContext: Pick<AppContext, "monitoring" | "response" | "caching" | "delay">,
 ) {
   return async (req: Request, ctx: ConnInfo) => {
     if (req.method === "HEAD") {
@@ -48,8 +48,9 @@ export default function Fresh(
     req.signal.addEventListener("abort", () => ctrl.abort());
 
     // Add more cases when not allowed to abort due to MAX_AWAIT_TIME
-    if (asJson == null) {
-      setTimeout(() => ctrl.abort(), 200);
+    const delay = appContext.delay || 100;
+    if (asJson == null && delay) {
+      setTimeout(() => ctrl.abort(), delay);
     }
 
     const page = await appContext?.monitoring?.tracer?.startActiveSpan?.(
