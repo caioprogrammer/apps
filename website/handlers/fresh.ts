@@ -1,5 +1,6 @@
 import { HandlerContext } from "$fresh/server.ts";
 import { Page } from "deco/blocks/page.tsx";
+import { CancelationToken } from "deco/deco.ts";
 import {
   asResolved,
   BaseContext,
@@ -37,6 +38,20 @@ export default function Fresh(
       return new Response(null, { status: 200 });
     }
     const timing = appContext?.monitoring?.timings?.start?.("load-data");
+
+    const url = new URL(req.url);
+    const asJson = url.searchParams.get("asJson");
+
+    // Setup abort signals
+    const ctrl = new AbortController();
+    CancelationToken.set(ctrl.signal);
+    req.signal.addEventListener("abort", () => ctrl.abort());
+
+    // Add more cases when not allowed to abort due to MAX_AWAIT_TIME
+    if (asJson == null) {
+      setTimeout(() => ctrl.abort(), 200);
+    }
+
     const page = await appContext?.monitoring?.tracer?.startActiveSpan?.(
       "load-data",
       async (span) => {
@@ -56,14 +71,14 @@ export default function Fresh(
       },
     );
 
-    const url = new URL(req.url);
-    if (url.searchParams.get("asJson") !== null) {
+    if (asJson !== null) {
       return Response.json(page, { headers: allowCorsFor(req) });
     }
     if (isFreshCtx<DecoState>(ctx)) {
       const timing = appContext?.monitoring?.timings?.start?.(
         "render-to-string",
       );
+
       const response = await appContext.monitoring!.tracer.startActiveSpan(
         "render-to-string",
         async (span) => {

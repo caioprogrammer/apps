@@ -1,22 +1,20 @@
 import { Head } from "$fresh/runtime.ts";
+import { Page } from "deco/blocks/page.tsx";
 import { Section } from "deco/blocks/section.ts";
-import { ComponentMetadata } from "deco/engine/block.ts";
+import { ComponentFunc, ComponentMetadata } from "deco/engine/block.ts";
+import { HttpError } from "deco/engine/errors.ts";
 import { Context } from "deco/live.ts";
+import { isDeferred } from "deco/mod.ts";
+import { logger } from "deco/observability/otel/config.ts";
 import {
   usePageContext as useDecoPageContext,
   useRouterContext,
 } from "deco/runtime/fresh/routes/entrypoint.tsx";
-import { JSX } from "preact";
+import { Component, h, JSX } from "preact";
+import ErrorPageComponent from "../../utils/defaultErrorPage.tsx";
 import Events from "../components/Events.tsx";
 import LiveControls from "../components/_Controls.tsx";
 import { AppContext } from "../mod.ts";
-import { Page } from "deco/blocks/page.tsx";
-import { Component } from "preact";
-import { ComponentFunc } from "deco/engine/block.ts";
-import { HttpError } from "deco/engine/errors.ts";
-import { logger } from "deco/observability/otel/config.ts";
-import { isDeferred } from "deco/mod.ts";
-import ErrorPageComponent from "../../utils/defaultErrorPage.tsx";
 
 /**
  * @title Sections
@@ -43,10 +41,13 @@ export interface Props {
 }
 
 export function renderSection(section: Props["sections"][number]) {
-  if (section === undefined || section === null) return <></>;
+  if (section === undefined || section === null) {
+    return <></>;
+  }
+
   const { Component, props } = section;
 
-  return <Component {...props} />;
+  return <Component props={props} />;
 }
 
 class ErrorBoundary extends // deno-lint-ignore no-explicit-any
