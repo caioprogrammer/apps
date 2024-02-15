@@ -249,6 +249,20 @@ export const toProduct = (
       valueReference: "INFORMATION",
     })
   );
+
+  variant.attributeSelections?.selections.forEach((selection) => {
+    if (selection) {
+      selection.values.forEach((value) => {
+        additionalProperty.push({
+          alias: value?.alias,
+          selected: value?.selected,
+          value: value?.value,
+          available: value?.available
+        })
+      })
+    }
+  });
+
   variant.attributes?.forEach((attr) =>
     additionalProperty.push({
       "@type": "PropertyValue",
