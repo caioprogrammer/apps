@@ -44,10 +44,10 @@ export function renderSection(section: Props["sections"][number]) {
   if (section === undefined || section === null) {
     return <></>;
   }
-
+ 
   const { Component, props } = section;
 
-  return <Component props={props} />;
+  return <Component {...props} />;
 }
 
 class ErrorBoundary extends // deno-lint-ignore no-explicit-any
